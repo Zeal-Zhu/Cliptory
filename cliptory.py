@@ -1,6 +1,7 @@
 import rumps
 import sys
 import clip_board
+import re
 
 if sys.version_info < (3, 0):
     # Python 2
@@ -21,35 +22,65 @@ def print_f(_):
 def onebitcallback(_):
     print(f)
 
+
 def copy_from_selected_callback(sender):
-    clip_board.copy_from_selected(str(sender.title))
+    content = str(sender.title)
+    patt = r"^\[\ [0-9] *\ \]\t*"
+    match = str(re.findall(patt, content)[0])
+    con = content.replace(match, "")
+    clip_board.copy_from_selected(con)
+
+
+def doing_clear_history(self):
+    # 删除json
+    clip_board.clear_cb_data(clip_board.FILENAME)
+    # 删除menu
+    self.menu["Clipboard"].clear()
+
+
+def clear_history_callback():
+    wind = rumps.Window()
+    wind.title = "Are you sure to clear the history?"
+
+    wind.add_button
+
 
 class Cliptory(rumps.App):
     def __init__(self):
-        super(Cliptory, self).__init__("Cliptory") # app名字
-        self.icon = "app.icns" # 设置icon
+        super(Cliptory, self).__init__("Cliptory")  # app名字
+        self.icon = "app.icns"  # 设置icon
 
         self.menu = [
+            "History",
+            rumps.MenuItem("Clipboard", callback=sayhello),
+            rumps.separator,
+            rumps.MenuItem("Silly button"),
+            rumps.MenuItem("Say hi"),
             rumps.MenuItem('A', callback=print_f, key='F'),
             ('B', ['1', 2, '3', [4, [5, (6, range(7, 14))]]]),
             'C',
-            rumps.MenuItem("Clipboard", callback=sayhello),
-            rumps.MenuItem("Silly button"),
-            rumps.MenuItem("Say hi"),
             rumps.separator,
+            rumps.MenuItem("Clear History"),
             rumps.MenuItem("sayhello", callback=sayhello),
             {'Arbitrary':
              {"Depth": ["Menus", "It's pretty easy"],
-              "And doesn't": ["Even look like Objective C", rumps.MenuItem("One bit", callback=onebitcallback)]
+              "And doesn't": ["Even look like Objective C",
+                              rumps.MenuItem("One bit", callback=onebitcallback)]
               }
-            }
+             },
+            rumps.MenuItem("Preference", key=","),
+            # rumps.MenuItem("test",callback=doing_clear_history),
+            None
         ]
 
         # 从本地json取值，然后添加到menu里面
-        cb = clip_board.list_cb_content() 
-        for c in cb:
-            self.menu["Clipboard"].add(rumps.MenuItem(
-                c, callback=copy_from_selected_callback))
+        cb = clip_board.list_cb_content()
+        if cb is not None:
+            flag = 0
+            for c in cb:
+                flag += 1
+                self.menu["Clipboard"].add(rumps.MenuItem(
+                    "[ {} ]\t{}".format(flag, c), callback=copy_from_selected_callback))
 
     @rumps.clicked("Clipboard")
     def prefs(self, _):
@@ -63,6 +94,26 @@ class Cliptory(rumps.App):
     @rumps.clicked("Say hi")
     def sayhi(self, _):
         rumps.notification("Awesome title", "amazing subtitle", "hi!!1")
+
+    @rumps.clicked("Clear History")
+    def clear_history(self, sender):
+        # 删除json
+        clip_board.clear_cb_data(clip_board.FILENAME)
+        # 删除menu
+        self.menu["Clipboard"].clear()
+        # wind = rumps.Window(message="Are you sure to clear the history?",
+        #                     title="Warnning", ok="OK")
+        # wind.run()
+        # print(sender)
+        # print(sender.state)
+
+    @rumps.clicked("Preference")
+    def preferWind(self, _):
+        w = rumps.Window(message='US Mobile login name/email',
+                         title='Login',
+                         dimensions=(250, 24),
+                         default_text="your@email.com")
+        w.run()
 
 
 if __name__ == "__main__":

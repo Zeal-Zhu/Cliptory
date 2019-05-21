@@ -89,7 +89,7 @@ def clear_cb_data(filename):
 
 
 # cb = clip_board()
-# save_cb_to_local(FILENAME)
+save_cb_to_local(FILENAME)
 # load_local_cb('data.json')
 # clear_cb_data('data.json')
-list_cb_content()
+# list_cb_content()
