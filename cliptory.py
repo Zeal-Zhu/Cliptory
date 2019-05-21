@@ -10,19 +10,6 @@ else:
     # Python 3
     import tkinter as tk
 
-
-def sayhello(sender):
-    print('hello {}'.format(sender))
-
-
-def print_f(_):
-    print(f)
-
-
-def onebitcallback(_):
-    print(f)
-
-
 def copy_from_selected_callback(sender):
     content = str(sender.title)
     patt = r"^\[\ [0-9] *\ \]\t*"
@@ -30,20 +17,17 @@ def copy_from_selected_callback(sender):
     con = content.replace(match, "")
     clip_board.copy_from_selected(con)
 
-
 def doing_clear_history(self):
     # 删除json
     clip_board.clear_cb_data(clip_board.FILENAME)
     # 删除menu
     self.menu["Clipboard"].clear()
 
-
 def clear_history_callback():
     wind = rumps.Window()
     wind.title = "Are you sure to clear the history?"
 
     wind.add_button
-
 
 class Cliptory(rumps.App):
     def __init__(self):
@@ -52,22 +36,9 @@ class Cliptory(rumps.App):
 
         self.menu = [
             "History",
-            rumps.MenuItem("Clipboard", callback=sayhello),
-            rumps.separator,
-            rumps.MenuItem("Silly button"),
-            rumps.MenuItem("Say hi"),
-            rumps.MenuItem('A', callback=print_f, key='F'),
-            ('B', ['1', 2, '3', [4, [5, (6, range(7, 14))]]]),
-            'C',
+            rumps.MenuItem("Clipboard"),
             rumps.separator,
             rumps.MenuItem("Clear History"),
-            rumps.MenuItem("sayhello", callback=sayhello),
-            {'Arbitrary':
-             {"Depth": ["Menus", "It's pretty easy"],
-              "And doesn't": ["Even look like Objective C",
-                              rumps.MenuItem("One bit", callback=onebitcallback)]
-              }
-             },
             rumps.MenuItem("Preference", key=","),
             # rumps.MenuItem("test",callback=doing_clear_history),
             None
@@ -86,14 +57,6 @@ class Cliptory(rumps.App):
     def prefs(self, _):
         cb = clip_board.get_cb()
         rumps.alert("your clipboard is {}".format(cb))
-
-    @rumps.clicked("Silly button")
-    def onoff(self, sender):
-        sender.state = not sender.state
-
-    @rumps.clicked("Say hi")
-    def sayhi(self, _):
-        rumps.notification("Awesome title", "amazing subtitle", "hi!!1")
 
     @rumps.clicked("Clear History")
     def clear_history(self, sender):
