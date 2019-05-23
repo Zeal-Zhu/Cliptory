@@ -47,7 +47,7 @@ def save_cb_to_local(filename):
     """
 
     new_data = {get_cb(): str(dt.datetime.now().strftime(
-        "%Y-%m-%d %H:%M:%S"))}  # 获取当前的clipboard，保存成dict
+        "%Y-%m-%d %H:%M:%S"))}  # get clipboard value and time
     data = load_local_cb(filename)
     if data is None:
         data = new_data
@@ -74,14 +74,14 @@ def list_cb_content():
 
 def check_if_latest():
     """
-    检测是否最新
+    check if new
     """
     pass
 
 
 def clear_cb_data(filename):
     """
-    清空clipboard的json文件内容
+    empty the json file content
     """
     with open(filename, 'w') as json_file:
         json_file.seek(0)

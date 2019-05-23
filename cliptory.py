@@ -22,14 +22,17 @@ def copy_from_selected_callback(sender):
     clip_board.copy_from_selected(con)
 
 
-class ClipboardWatcher(threading.Thread): 
-    def __init__(self, window,pause=5.):
+class ClipboardWatcher(threading.Thread):
+    """
+    use threading to dectect clipboard changes
+    """
+    def __init__(self, window, pause=5.):
         super(ClipboardWatcher, self).__init__()
         self._pause = pause
         self._stopping = False
-        self._window= window
+        self._window = window
 
-    def run(self,*window):
+    def run(self):
         recent_value = ""
         while not self._stopping:
             tmp_value = clip_board.get_cb()
@@ -47,8 +50,8 @@ class ClipboardWatcher(threading.Thread):
 
 class Cliptory(rumps.App):
     def __init__(self):
-        super(Cliptory, self).__init__("Cliptory")  # app名字
-        self.icon = "app.icns"  # 设置icon
+        super(Cliptory, self).__init__("Cliptory")  # set app name
+        self.icon = "app.icns"  # set icon
 
         self.menu.add("History")
         self.menu.add(rumps.MenuItem("Clipboard"))
@@ -56,11 +59,11 @@ class Cliptory(rumps.App):
         self.menu.add(rumps.MenuItem("Clear History"))
         self.menu.add(rumps.MenuItem("Preference", key=","))
 
-       # 从本地json取值，然后添加到menu里面
+        # get menu items from local json file, and then add the menu
         cb = clip_board.list_cb_content()
         self.add_menu(list(cb))
 
-        # 实时监测clipboard变化
+        # watch clipboard changes using threading
         watcher = ClipboardWatcher(self, 0.5)
         watcher.start()
 
@@ -80,9 +83,9 @@ class Cliptory(rumps.App):
 
     @rumps.clicked("Clear History")
     def clear_history(self, sender):
-        # 删除json
+        # delete json
         clip_board.clear_cb_data(clip_board.FILENAME)
-        # 删除menu
+        # delete submenu
         self.menu["Clipboard"].clear()
         # wind = rumps.Window(message="Are you sure to clear the history?",
         #                     title="Warnning", ok="OK")
