@@ -2,13 +2,17 @@ import rumps
 import sys
 import clip_board
 import re
+import time
+import threading
 
 if sys.version_info < (3, 0):
     # Python 2
-    import Tkinter as tk
+    import Tkinter as Tk
 else:
     # Python 3
-    import tkinter as tk
+    import tkinter as Tk
+    import tkinter.messagebox as messagebox
+
 
 def copy_from_selected_callback(sender):
     content = str(sender.title)
@@ -17,41 +21,57 @@ def copy_from_selected_callback(sender):
     con = content.replace(match, "")
     clip_board.copy_from_selected(con)
 
-def doing_clear_history(self):
-    # 删除json
-    clip_board.clear_cb_data(clip_board.FILENAME)
-    # 删除menu
-    self.menu["Clipboard"].clear()
 
-def clear_history_callback():
-    wind = rumps.Window()
-    wind.title = "Are you sure to clear the history?"
+class ClipboardWatcher(threading.Thread): 
+    def __init__(self, window,pause=5.):
+        super(ClipboardWatcher, self).__init__()
+        self._pause = pause
+        self._stopping = False
+        self._window= window
 
-    wind.add_button
+    def run(self,*window):
+        recent_value = ""
+        while not self._stopping:
+            tmp_value = clip_board.get_cb()
+            if tmp_value != recent_value:
+                recent_value = tmp_value
+                print("found change:{}", recent_value)
+                temp = []
+                temp.append(recent_value)
+                self._window.add_menu(temp)
+            time.sleep(self._pause)
+
+    def stop(self):
+        self._stopping = True
+
 
 class Cliptory(rumps.App):
     def __init__(self):
         super(Cliptory, self).__init__("Cliptory")  # app名字
         self.icon = "app.icns"  # 设置icon
 
-        self.menu = [
-            "History",
-            rumps.MenuItem("Clipboard"),
-            rumps.separator,
-            rumps.MenuItem("Clear History"),
-            rumps.MenuItem("Preference", key=","),
-            # rumps.MenuItem("test",callback=doing_clear_history),
-            None
-        ]
+        self.menu.add("History")
+        self.menu.add(rumps.MenuItem("Clipboard"))
+        self.menu.add(rumps.separator)
+        self.menu.add(rumps.MenuItem("Clear History"))
+        self.menu.add(rumps.MenuItem("Preference", key=","))
 
-        # 从本地json取值，然后添加到menu里面
+       # 从本地json取值，然后添加到menu里面
         cb = clip_board.list_cb_content()
-        if cb is not None:
-            flag = 0
-            for c in cb:
-                flag += 1
+        self.add_menu(list(cb))
+
+        # 实时监测clipboard变化
+        watcher = ClipboardWatcher(self, 0.5)
+        watcher.start()
+
+    FLAG = 0
+
+    def add_menu(self, menu_list):
+        if menu_list is not None:
+            for menu_name in menu_list:
                 self.menu["Clipboard"].add(rumps.MenuItem(
-                    "[ {} ]\t{}".format(flag, c), callback=copy_from_selected_callback))
+                    "[ {} ]\t{}".format(self.FLAG, menu_name), callback=copy_from_selected_callback))
+                self.FLAG += 1
 
     @rumps.clicked("Clipboard")
     def prefs(self, _):

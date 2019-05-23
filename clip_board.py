@@ -15,7 +15,7 @@ def get_cb():
     # cbstring = cb.stringForType_(NSStringPboardType)
 
     # return cbstring
-
+    
     text = clipboard.paste()
     return text
 
