@@ -16,7 +16,7 @@ else:
 
 def copy_from_selected_callback(sender):
     content = str(sender.title)
-    patt = r"^\[\ [0-9] *\ \]\t*"
+    patt = r"^\[\ [0-9] *\ \]\ *"
     match = str(re.findall(patt, content)[0])
     con = content.replace(match, "")
     clip_board.copy_from_selected(con)
@@ -26,6 +26,7 @@ class ClipboardWatcher(threading.Thread):
     """
     use threading to dectect clipboard changes
     """
+
     def __init__(self, window, pause=5.):
         super(ClipboardWatcher, self).__init__()
         self._pause = pause
@@ -35,14 +36,18 @@ class ClipboardWatcher(threading.Thread):
     def run(self):
         recent_value = ""
         while not self._stopping:
-            tmp_value = clip_board.get_cb()
-            if tmp_value != recent_value:
-                recent_value = tmp_value
-                print("found change:{}", recent_value)
-                temp = []
-                temp.append(recent_value)
-                self._window.add_menu(temp)
-            time.sleep(self._pause)
+            recent_value = clip_board.get_cb()
+            load_cb = clip_board.load_local_cb(clip_board.FILENAME)
+            if load_cb is not None and recent_value is not None:
+                contents = load_cb.keys()
+                if recent_value not in contents and contents is not None:
+                    print("found change:{}", recent_value)
+                    temp = []
+                    temp.append(recent_value)
+                    self._window.add_menu(temp)
+                    clip_board.save_cb_to_local(
+                        recent_value, clip_board.FILENAME)
+        time.sleep(self._pause)
 
     def stop(self):
         self._stopping = True
@@ -61,19 +66,20 @@ class Cliptory(rumps.App):
 
         # get menu items from local json file, and then add the menu
         cb = clip_board.list_cb_content()
-        self.add_menu(list(cb))
+        if cb is not None:
+            self.add_menu(list(cb))
 
         # watch clipboard changes using threading
         watcher = ClipboardWatcher(self, 0.5)
         watcher.start()
 
-    FLAG = 0
+    FLAG = 1
 
     def add_menu(self, menu_list):
         if menu_list is not None:
             for menu_name in menu_list:
                 self.menu["Clipboard"].add(rumps.MenuItem(
-                    "[ {} ]\t{}".format(self.FLAG, menu_name), callback=copy_from_selected_callback))
+                    "[ {} ] {}".format(self.FLAG, menu_name), callback=copy_from_selected_callback))
                 self.FLAG += 1
 
     @rumps.clicked("Clipboard")
