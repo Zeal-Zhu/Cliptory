@@ -35,10 +35,8 @@ def list_cb_content():
     """
     列出clipboard内容，返回list
     """
-    data = load_local_cb(FILENAME)
-    if data is None:
-        pass
-    else:
+    data = load_local_cb()
+    if data is not None:
         list_data = sorted(data.keys())
         return list_data
 
@@ -61,14 +59,13 @@ def sort_cb_content():
 操作json文件
 """
 
-
-def load_local_cb(filename):
+def load_local_cb():
     """
     载入本地json的clipboard
     """
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
+    if os.path.exists(FILENAME) and os.path.getsize(FILENAME) > 0:
         # ... your code for else case ...
-        with open(filename, 'r') as json_file:
+        with open(FILENAME, 'r') as json_file:
             content = json_file.readline()
             js = json.loads(content)
             return js
@@ -78,18 +75,18 @@ def load_local_cb(filename):
         return None
 
 
-def save_cb_to_local(content, filename):
+def save_cb_to_local(content):
     """
     先载入，再添加新的
     保存到本地json
     """
-    load_cb = load_local_cb(FILENAME)
+    load_cb = load_local_cb()
     if load_cb is not None:
         contents = load_cb.keys()
         if content not in contents and contents is not None:
             new_data = {content: str(dt.datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"))}  # get clipboard value and time
-            data = load_local_cb(filename)
+            data = load_local_cb()
             if data is None:
                 data = new_data
             else:
@@ -97,21 +94,21 @@ def save_cb_to_local(content, filename):
 
             js_data = str(json.dumps(data))
 
-            with open(filename, 'w') as json_file:
+            with open(FILENAME, 'w') as json_file:
                 json.dump(json.loads(js_data), json_file)
     else:
         new_data = {content: str(dt.datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"))}  # get clipboard value and time
         js_data = str(json.dumps(new_data))
-        with open(filename, 'w') as json_file:
+        with open(FILENAME, 'w') as json_file:
             json.dump(json.loads(js_data), json_file)
 
 
-def clear_cb_data(filename):
+def clear_cb_data():
     """
     empty the json file content
     """
-    with open(filename, 'w') as json_file:
+    with open(FILENAME, 'w') as json_file:
         json_file.seek(0)
         json_file.truncate()
 

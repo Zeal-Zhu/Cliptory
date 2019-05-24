@@ -37,20 +37,27 @@ class ClipboardWatcher(threading.Thread):
         recent_value = ""
         while not self._stopping:
             recent_value = clip_board.get_cb()
-            load_cb = clip_board.load_local_cb(clip_board.FILENAME)
-            if load_cb is not None and recent_value is not None:
+            load_cb = clip_board.load_local_cb()
+            if load_cb is not None:
                 contents = load_cb.keys()
-                if recent_value not in contents and contents is not None:
-                    print("found change:{}", recent_value)
-                    temp = []
-                    temp.append(recent_value)
-                    self._window.add_menu(temp)
-                    clip_board.save_cb_to_local(
-                        recent_value, clip_board.FILENAME)
+                if recent_value is not None:
+                    if recent_value not in contents:
+                        self.add_clipboard_content(recent_value)
+            else :
+                if recent_value is not None:
+                    self.add_clipboard_content(recent_value)
+
         time.sleep(self._pause)
 
     def stop(self):
         self._stopping = True
+
+    def add_clipboard_content(self,value):
+        print("found change:{}", value)
+        temp = []
+        temp.append(value)
+        self._window.add_menu(temp)
+        clip_board.save_cb_to_local(value)
 
 
 class Cliptory(rumps.App):
@@ -90,7 +97,7 @@ class Cliptory(rumps.App):
     @rumps.clicked("Clear History")
     def clear_history(self, sender):
         # delete json
-        clip_board.clear_cb_data(clip_board.FILENAME)
+        clip_board.clear_cb_data()
         # delete submenu
         self.menu["Clipboard"].clear()
         # wind = rumps.Window(message="Are you sure to clear the history?",
